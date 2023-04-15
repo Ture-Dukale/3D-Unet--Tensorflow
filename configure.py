@@ -4,7 +4,7 @@ import tensorflow as tf
 """This script defines hyperparameters.
 """
 
-class Configure():
+class Configure (object):
 	# training
 	raw_data_dir = '/data/zhengyang/InfantBrain/RawData' # 'the directory where the raw data is stored'
 	data_dir = '/data/zhengyang/InfantBrain/tfrecords_full' # 'the directory where the input data is stored'
