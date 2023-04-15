@@ -73,17 +73,15 @@ def convert_labels(labels):
 	'''Converts 0:background / 10:CSF / 150:GM / 250:WM to 0/1/2/3. SLOW!
 	'''
 
-	D, H, W, C = labels.shape
+	D, H, W, C = labels.shape # these are masks without BG
+	output_labels = np.zeros(H, W, 1)
 
 	for d in range(D):
 		for h in range(H):
 			for w in range(W):
-				if labels[d,h,w,0] == 10:
-					labels[d,h,w,0] = 1
-				elif labels[d,h,w,0] == 150:
-					labels[d,h,w,0] = 2
-				elif labels[d,h,w,0] == 250:
-					labels[d,h,w,0] = 3
+				if labels[d,h,w,0] == 1:
+					output_labels[h,w,0] = d + 1
+	return output_labels
 
 
 def load_subject(raw_data_dir, subject_id):
