@@ -84,8 +84,8 @@ def convert_labels(labels):
 	return output_labels
 
 
-#def load_subject(raw_data_dir, subject_id):
-def load_subject(subject_id):	
+def load_subject(raw_data_dir, subject_id):
+#def load_subject(subject_id):	
 	'''Load subject data.
 
 	Args:
@@ -100,7 +100,8 @@ def load_subject(subject_id):
 	
 	image_subject_var = 'image_train_{}'.format(subject_id)
 	mask_subject_var = 'mask_train_{}'.format(subject_id)
-	g = h5py.File('/kaggle/input/ink-train-orig-size/train.h5', 'r')
+	#g = h5py.File('/kaggle/input/ink-train-orig-size/train.h5', 'r')
+	g = h5py.File(raw_data_dir, 'r')
 	input_img = g[image_subject_var][()]
 	input_mask = g[mask_subject_var][()]
 	g.close()
