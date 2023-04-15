@@ -277,7 +277,7 @@ def generate_files(raw_data_dir, output_path, valid_id, pred_id, patch_size, ove
 		
 		if (i < 7 and not os.path.isfile(train_filename)) or \
 			(i == pred_id and not os.path.isfile(pred_filename)) or \
-			(i in valid_id and (not os.path.isfile(valid_filename) or \
+			(i == valid_id and (not os.path.isfile(valid_filename) or \
 				not os.path.isfile(converted_label_filename))):
 			print('Loading data...')
 			[_T1, _label] = load_subject(raw_data_dir, i)
@@ -291,11 +291,11 @@ def generate_files(raw_data_dir, output_path, valid_id, pred_id, patch_size, ove
 			print('Check original_shape: ', original_shape)
 			print('Check cut_size: ', cut_size)
 
-		if not os.path.isfile(train_filename) and i < 7:
+		if (not os.path.isfile(train_filename)) and ((i != valid_id) and (i != pred_id)):
 			print('Create the training file:')
 			write_training_examples(_T1, _label, original_shape, cut_size, train_filename)
 
-		if i in valid_id:
+		if i == valid_id:
 			if not os.path.isfile(valid_filename):
 				print('Create the validation file:')
 				write_validation_examples(_T1, _label, patch_size, cut_size, overlap_stepsize, valid_filename)
