@@ -3,7 +3,7 @@ import sys
 import tensorflow as tf
 import nibabel as nib
 import numpy as np
-from configure import conf
+#from configure import conf
 
 
 """Generate TFRecord Files.
