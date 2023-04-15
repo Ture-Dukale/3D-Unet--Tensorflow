@@ -6,8 +6,8 @@ import tensorflow as tf
 
 class Configure (object):
 	# training
-	raw_data_dir = '/data/zhengyang/InfantBrain/RawData' # 'the directory where the raw data is stored'
-	data_dir = '/data/zhengyang/InfantBrain/tfrecords_full' # 'the directory where the input data is stored'
+	raw_data_dir = '/kaggle/input/ink-train-orig-size/train.h5' # 'the directory where the raw data is stored'
+	data_dir = '/kaggle/working/tfrecords_full' # 'the directory where the input data is stored'
 	num_training_subs = 4 # 'the number of subjects used for training'
 	train_epochs = 1000 # 'the number of epochs to use for training'
 	epochs_per_eval = 5 # 'the number of training epochs to run between evaluations'
