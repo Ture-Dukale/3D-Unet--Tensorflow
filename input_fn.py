@@ -15,8 +15,8 @@ def get_filenames(data_dir, mode, valid_id, pred_id, overlap_step, patch_size):
 	if mode == 'train':
 		train_files = [
 			os.path.join(data_dir, 'subject-%d.tfrecords' % i)
-			for i in range(1, 11)
-			if i != valid_id
+			for i in range(1, 7, 1)
+			if ((i != valid_id) and (i != pred_id))
 		]
 		for f in train_files:
 			assert os.path.isfile(f), \
@@ -42,8 +42,8 @@ def decode_train(serialized_example):
 	features = tf.parse_single_example(
 					serialized_example,
 					features={
-						'T1':tf.FixedLenFeature([],tf.string),
-						'T2':tf.FixedLenFeature([], tf.string),
+						'image':tf.FixedLenFeature([],tf.string),
+						#'T2':tf.FixedLenFeature([], tf.string),
 						'label':tf.FixedLenFeature([],tf.string),
 						'original_shape':tf.FixedLenFeature(3, tf.int64),
 						'cut_size':tf.FixedLenFeature(6, tf.int64)
@@ -53,19 +53,19 @@ def decode_train(serialized_example):
 	cut_size = features['cut_size']
 
 	# Convert from a scalar string tensor
-	image_T1 = tf.decode_raw(features['T1'], tf.int16)
+	image_T1 = tf.decode_raw(features['image'], tf.int16)
 	image_T1 = tf.reshape(image_T1, img_shape)
-	image_T2 = tf.decode_raw(features['T2'], tf.int16)
-	image_T2 = tf.reshape(image_T2, img_shape)
+	#image_T2 = tf.decode_raw(features['T2'], tf.int16)
+	#image_T2 = tf.reshape(image_T2, img_shape)
 	label = tf.decode_raw(features['label'], tf.uint8)
 	label = tf.reshape(label, img_shape)
 
 	# Convert dtype.
 	image_T1 = tf.cast(image_T1, tf.float32)
-	image_T2 = tf.cast(image_T2, tf.float32)
+	#image_T2 = tf.cast(image_T2, tf.float32)
 	label = tf.cast(label, tf.float32)
 
-	return image_T1, image_T2, label, cut_size
+	return image_T1, label, cut_size
 
 
 def decode_valid(serialized_example):
@@ -74,26 +74,26 @@ def decode_valid(serialized_example):
 	features = tf.parse_single_example(
 					serialized_example,
 					features={
-						'T1':tf.FixedLenFeature([],tf.string),
-						'T2':tf.FixedLenFeature([], tf.string),
+						'image':tf.FixedLenFeature([],tf.string),
+						#'T2':tf.FixedLenFeature([], tf.string),
 						'label':tf.FixedLenFeature([],tf.string)
 					})
 
 	patch_shape = [conf.patch_size, conf.patch_size, conf.patch_size]
 
 	# Convert from a scalar string tensor
-	image_T1 = tf.decode_raw(features['T1'], tf.int16)
+	image_T1 = tf.decode_raw(features['image'], tf.int16)
 	image_T1 = tf.reshape(image_T1, patch_shape)
-	image_T2 = tf.decode_raw(features['T2'], tf.int16)
-	image_T2 = tf.reshape(image_T2, patch_shape)
+	#image_T2 = tf.decode_raw(features['T2'], tf.int16)
+	#image_T2 = tf.reshape(image_T2, patch_shape)
 	label = tf.decode_raw(features['label'], tf.uint8)
 	label = tf.reshape(label, patch_shape)
 
 	# Convert dtype.
 	image_T1 = tf.cast(image_T1, tf.float32)
-	image_T2 = tf.cast(image_T2, tf.float32)
+	#image_T2 = tf.cast(image_T2, tf.float32)
 
-	return image_T1, image_T2, label
+	return image_T1, label
 
 
 def decode_pred(serialized_example):
@@ -103,29 +103,29 @@ def decode_pred(serialized_example):
 					serialized_example,
 					features={
 						'T1':tf.FixedLenFeature([],tf.string),
-						'T2':tf.FixedLenFeature([], tf.string)
+						#'T2':tf.FixedLenFeature([], tf.string)
 					})
 
 	patch_shape = [conf.patch_size, conf.patch_size, conf.patch_size]
 
 	# Convert from a scalar string tensor
-	image_T1 = tf.decode_raw(features['T1'], tf.int16)
+	image_T1 = tf.decode_raw(features['image'], tf.int16)
 	image_T1 = tf.reshape(image_T1, patch_shape)
-	image_T2 = tf.decode_raw(features['T2'], tf.int16)
-	image_T2 = tf.reshape(image_T2, patch_shape)
+	#image_T2 = tf.decode_raw(features['T2'], tf.int16)
+	#image_T2 = tf.reshape(image_T2, patch_shape)
 
 	# Convert dtype.
 	image_T1 = tf.cast(image_T1, tf.float32)
-	image_T2 = tf.cast(image_T2, tf.float32)
+	#image_T2 = tf.cast(image_T2, tf.float32)
 	label = tf.zeros(image_T1.shape) # pseudo label
 
-	return image_T1, image_T2, label
+	return image_T1, label
 
 
-def crop_image(image_T1, image_T2, label, cut_size):
+def crop_image(image_T1, label, cut_size):
 	"""Crop training data."""
 
-	data = tf.stack([image_T1, image_T2, label], axis=-1)
+	data = tf.stack([image_T1, label], axis=-1)
 
 	# Randomly crop a [patch_size, patch_size, patch_size] section of the image.
 	image = tf.random_crop(
