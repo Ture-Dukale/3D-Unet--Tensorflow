@@ -74,7 +74,7 @@ def convert_labels(labels):
 	'''
 
 	D, H, W, C = labels.shape # these are masks without BG
-	output_labels = np.zeros(H, W, 1)
+	output_labels = np.zeros((H, W, 1))
 
 	for d in range(D):
 		for h in range(H):
@@ -84,7 +84,8 @@ def convert_labels(labels):
 	return output_labels
 
 
-def load_subject(raw_data_dir, subject_id):
+#def load_subject(raw_data_dir, subject_id):
+def load_subject(subject_id):	
 	'''Load subject data.
 
 	Args:
@@ -93,26 +94,19 @@ def load_subject(raw_data_dir, subject_id):
 	Returns:
 		[T1, T2, label]
 	'''
-
-	subject_name = 'subject-%d-' % subject_id
-
-	f1 = os.path.join(raw_data_dir, subject_name+'T1.hdr')
-	f2 = os.path.join(raw_data_dir, subject_name+'T2.hdr')
-
-	img_T1 = nib.load(f1)
-	img_T2 = nib.load(f2)
-
-	inputs_T1 = img_T1.get_data()
-	inputs_T2 = img_T2.get_data()
 	
-	if subject_id < 11:
-		fl = os.path.join(raw_data_dir, subject_name+'label.hdr')
-		img_label = nib.load(fl)
-		inputs_label = img_label.get_data()
-	else:
-		inputs_label = None
-
-	return [inputs_T1, inputs_T2, inputs_label]
+	# on the kaggle NB collect all the 65 images togather and write as .h5.
+	# so that here we will only use the link to load it with its labels.
+	
+	image_subject_var = 'image_train_{}'.format(subject_id)
+	mask_subject_var = 'mask_train_{}'.format(subject_id)
+	g = h5py.File('/kaggle/input/ink-train-orig-size/train.h5', 'r')
+	input_img = g[image_subject_var][()]
+	input_mask = g[mask_subject_var][()]
+	g.close()
+	input_img = np.expand_dims(input_img, axis=-1)
+	input_mask = np.expand_dims(input_mask, axis=-1)
+	return [input_img, input_mask]
 		
 
 def prepare_validation(cutted_image, patch_size, overlap_stepsize):
@@ -144,7 +138,7 @@ def prepare_validation(cutted_image, patch_size, overlap_stepsize):
 # TFRecord Generation Functions
 ################################################################################
 
-def write_training_examples(T1, T2, label, original_shape, cut_size, output_file):
+def write_training_examples(T1, label, original_shape, cut_size, output_file):
 	"""Create a training tfrecord file.
 	
 	Args:
@@ -160,8 +154,8 @@ def write_training_examples(T1, T2, label, original_shape, cut_size, output_file
 
 	example = tf.train.Example(features=tf.train.Features(
 		feature={
-			'T1': _bytes_feature([T1[:,:,:,0].tostring()]), #int16
-			'T2': _bytes_feature([T2[:,:,:,0].tostring()]), #int16
+			'image': _bytes_feature([T1[:,:,:,0].tostring()]), #int16
+			#'T2': _bytes_feature([T2[:,:,:,0].tostring()]), #int16
 			'label': _bytes_feature([label[:,:,:,0].tostring()]), #uint8
 			'original_shape': _int64_feature(original_shape),
 			'cut_size': _int64_feature(cut_size)
@@ -173,7 +167,7 @@ def write_training_examples(T1, T2, label, original_shape, cut_size, output_file
 	writer.close()
 
 
-def write_validation_examples(T1, T2, label, patch_size, cut_size, overlap_stepsize, output_file):
+def write_validation_examples(T1, label, patch_size, cut_size, overlap_stepsize, output_file):
 	"""Create a validation tfrecord file.
 	
 	Args:
@@ -187,7 +181,7 @@ def write_validation_examples(T1, T2, label, patch_size, cut_size, overlap_steps
 	"""
 
 	T1 = T1[cut_size[0]:cut_size[1], cut_size[2]:cut_size[3], cut_size[4]:cut_size[5], :]
-	T2 = T2[cut_size[0]:cut_size[1], cut_size[2]:cut_size[3], cut_size[4]:cut_size[5], :]
+	#T2 = T2[cut_size[0]:cut_size[1], cut_size[2]:cut_size[3], cut_size[4]:cut_size[5], :]
 	label = label[cut_size[0]:cut_size[1], cut_size[2]:cut_size[3], cut_size[4]:cut_size[5], :]
 
 	patch_ids = prepare_validation(T1, patch_size, overlap_stepsize)
@@ -200,13 +194,13 @@ def write_validation_examples(T1, T2, label, patch_size, cut_size, overlap_steps
 		(d, h, w) = patch_ids[i]
 
 		_T1 = T1[d:d+patch_size, h:h+patch_size, w:w+patch_size, :]
-		_T2 = T2[d:d+patch_size, h:h+patch_size, w:w+patch_size, :]
+		#_T2 = T2[d:d+patch_size, h:h+patch_size, w:w+patch_size, :]
 		_label = label[d:d+patch_size, h:h+patch_size, w:w+patch_size, :]
 
 		example = tf.train.Example(features=tf.train.Features(
 			feature={
-				'T1': _bytes_feature([_T1[:,:,:,0].tostring()]), #int16
-				'T2': _bytes_feature([_T2[:,:,:,0].tostring()]), #int16
+				'image': _bytes_feature([_T1[:,:,:,0].tostring()]), #int16
+				#'T2': _bytes_feature([_T2[:,:,:,0].tostring()]), #int16
 				'label': _bytes_feature([_label[:,:,:,0].tostring()]), #uint8
 			}
 		))
@@ -216,7 +210,7 @@ def write_validation_examples(T1, T2, label, patch_size, cut_size, overlap_steps
 	writer.close()
 
 
-def write_prediction_examples(T1, T2, patch_size, cut_size, overlap_stepsize, output_file):
+def write_prediction_examples(T1, patch_size, cut_size, overlap_stepsize, output_file):
 	"""Create a testing tfrecord file.
 	
 	Args:
@@ -229,7 +223,7 @@ def write_prediction_examples(T1, T2, patch_size, cut_size, overlap_stepsize, ou
 	"""
 
 	T1 = T1[cut_size[0]:cut_size[1], cut_size[2]:cut_size[3], cut_size[4]:cut_size[5], :]
-	T2 = T2[cut_size[0]:cut_size[1], cut_size[2]:cut_size[3], cut_size[4]:cut_size[5], :]
+	#T2 = T2[cut_size[0]:cut_size[1], cut_size[2]:cut_size[3], cut_size[4]:cut_size[5], :]
 
 	patch_ids = prepare_validation(T1, patch_size, overlap_stepsize)
 	print ('Number of patches:', len(patch_ids))
@@ -241,12 +235,12 @@ def write_prediction_examples(T1, T2, patch_size, cut_size, overlap_stepsize, ou
 		(d, h, w) = patch_ids[i]
 
 		_T1 = T1[d:d+patch_size, h:h+patch_size, w:w+patch_size, :]
-		_T2 = T2[d:d+patch_size, h:h+patch_size, w:w+patch_size, :]
+		#_T2 = T2[d:d+patch_size, h:h+patch_size, w:w+patch_size, :]
 
 		example = tf.train.Example(features=tf.train.Features(
 			feature={
-				'T1': _bytes_feature([_T1[:,:,:,0].tostring()]), #int16
-				'T2': _bytes_feature([_T2[:,:,:,0].tostring()]), #int16
+				'image': _bytes_feature([_T1[:,:,:,0].tostring()]), #int16
+				#'T2': _bytes_feature([_T2[:,:,:,0].tostring()]), #int16
 			}
 		))
 
@@ -257,14 +251,14 @@ def write_prediction_examples(T1, T2, patch_size, cut_size, overlap_stepsize, ou
 
 def generate_files(raw_data_dir, output_path, valid_id, pred_id, patch_size, overlap_stepsize):
 	"""Create tfrecord files."""
-	if valid_id not in range(1, 11) and valid_id != -1:
-		print('The valid_id should be in [1,10] or -1.')
+	if valid_id not in range(1, 7) and valid_id != -1:
+		print('The valid_id should be in [1,6] or -1.')
 		sys.exit(-1)
 
 	if not os.path.exists(output_path):
 		os.makedirs(output_path)
 
-	for i in range(1, 24):
+	for i in range(1, 7, 1):
 		print('---Process subject %d:---' % i)
 
 		subject_name = 'subject-%d' % i
@@ -280,12 +274,12 @@ def generate_files(raw_data_dir, output_path, valid_id, pred_id, patch_size, ove
 		converted_label_filename = 'subject-%d-label.npy' % valid_id
 		converted_label_filename = os.path.join(output_path, converted_label_filename)
 		
-		if (i < 11 and not os.path.isfile(train_filename)) or \
+		if (i < 7 and not os.path.isfile(train_filename)) or \
 			(i == pred_id and not os.path.isfile(pred_filename)) or \
-			(i == valid_id and (not os.path.isfile(valid_filename) or \
+			(i in valid_id and (not os.path.isfile(valid_filename) or \
 				not os.path.isfile(converted_label_filename))):
 			print('Loading data...')
-			[_T1, _T2, _label] = load_subject(raw_data_dir, i)
+			[_T1, _label] = load_subject(raw_data_dir, i)
 
 			if _label is not None:
 				print('Converting label...')
@@ -296,14 +290,14 @@ def generate_files(raw_data_dir, output_path, valid_id, pred_id, patch_size, ove
 			print('Check original_shape: ', original_shape)
 			print('Check cut_size: ', cut_size)
 
-		if not os.path.isfile(train_filename) and i < 11:
+		if not os.path.isfile(train_filename) and i < 7:
 			print('Create the training file:')
-			write_training_examples(_T1, _T2, _label, original_shape, cut_size, train_filename)
+			write_training_examples(_T1, _label, original_shape, cut_size, train_filename)
 
-		if i == valid_id:
+		if i in valid_id:
 			if not os.path.isfile(valid_filename):
 				print('Create the validation file:')
-				write_validation_examples(_T1, _T2, _label, patch_size, cut_size, overlap_stepsize, valid_filename)
+				write_validation_examples(_T1, _label, patch_size, cut_size, overlap_stepsize, valid_filename)
 
 			if not os.path.isfile(converted_label_filename):
 				print('Create the converted label file:')
@@ -312,7 +306,7 @@ def generate_files(raw_data_dir, output_path, valid_id, pred_id, patch_size, ove
 		if i == pred_id:
 			if not os.path.isfile(pred_filename):
 				print('Create the prediction file:')
-				write_prediction_examples(_T1, _T2, patch_size, cut_size, overlap_stepsize, pred_filename)
+				write_prediction_examples(_T1, patch_size, cut_size, overlap_stepsize, pred_filename)
 
 		print('---Done.---')
 
