@@ -130,21 +130,21 @@ def crop_image(image_T1, label, cut_size):
 	# Randomly crop a [patch_size, patch_size, patch_size] section of the image.
 	image = tf.random_crop(
 				data[cut_size[0]:cut_size[1], cut_size[2]:cut_size[3], cut_size[4]:cut_size[5], :],
-				[conf.patch_size, conf.patch_size, conf.patch_size, 3])
+				[65, conf.patch_size, conf.patch_size, 1])
 
-	[image_T1, image_T2, label] = tf.unstack(image, 3, axis=-1)
+	[image_T1, label] = tf.unstack(image, 2, axis=-1)
 
-	return image_T1, image_T2, label
+	return image_T1, label
 
 
-def normalize_image(image_T1, image_T2, label):
+def normalize_image(image_T1, label):
 	"""Normalize data."""
 
 	# Subtract off the mean and divide by the variance of the pixels.
 	image_T1 = tf.image.per_image_standardization(image_T1)
-	image_T2 = tf.image.per_image_standardization(image_T2)
+	#image_T2 = tf.image.per_image_standardization(image_T2)
 
-	features = tf.stack([image_T1, image_T2], axis=-1)
+	features = image_T1 		#tf.stack([image_T1, image_T2], axis=-1)
 
 	label = tf.cast(label, tf.int32)
 	
