@@ -1,7 +1,7 @@
 import os
 import sys
 import tensorflow as tf
-import nibabel as nib
+import h5py
 import numpy as np
 #from configure import conf
 
