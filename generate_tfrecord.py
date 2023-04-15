@@ -151,9 +151,6 @@ class GenerateTfRecord (object):
 			cut_size: A list of six integers [Depth_s, Depth_e, Height_s, Height_e, Width_s, Width_e].
 			output_file: The file name for the tfrecord file.
 		"""
-		
-		
-		
 		writer = tf.io.TFRecordWriter(output_file)
 
 		example = tf.train.Example(features=tf.train.Features(
@@ -190,8 +187,6 @@ class GenerateTfRecord (object):
 
 		patch_ids = GenerateTfRecord.prepare_validation(T1, patch_size, overlap_stepsize)
 		print ('Number of patches:', len(patch_ids))
-		
-		
 		writer = tf.io.TFRecordWriter(output_file)
 
 		for i in range(len(patch_ids)):
@@ -232,8 +227,6 @@ class GenerateTfRecord (object):
 
 		patch_ids = GenerateTfRecord.prepare_validation(T1, patch_size, overlap_stepsize)
 		print ('Number of patches:', len(patch_ids))
-		
-				
 		writer = tf.io.TFRecordWriter(output_file)
 
 		for i in range(len(patch_ids)):
