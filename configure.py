@@ -8,7 +8,7 @@ class Configure (object):
 	# training
 	raw_data_dir = '/kaggle/input/ink-train-orig-size/train.h5' # 'the directory where the raw data is stored'
 	data_dir = '/kaggle/working/tfrecords_full' # 'the directory where the input data is stored'
-	num_training_subs = 4 # 'the number of subjects used for training'
+	num_training_subs = 8 # 'the number of subjects used for training'
 	train_epochs = 1000 # 'the number of epochs to use for training'
 	epochs_per_eval = 5 # 'the number of training epochs to run between evaluations'
 	batch_size = 1 # 'the number of examples processed in each training batch'
@@ -23,8 +23,8 @@ class Configure (object):
 	# validation / prediction
 	patch_size = 128 # 'spatial size of patches'
 	overlap_step = 32 # 'overlap step size when performing validation/prediction'
-	validation_id = 2 # '1-10 or -1, which subject is used for validation'
-	prediction_id = 6 # '1-23, which subject is used for prediction'
+	validation_id = 7 # '1-10 or -1, which subject is used for validation'
+	prediction_id = 10 # '1-23, which subject is used for prediction'
 	checkpoint_num = 1530 # 'which checkpoint is used for validation/prediction'
 	save_dir = '/kaggle/working/results' # 'the directory where the prediction is stored'
 
