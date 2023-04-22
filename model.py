@@ -4,8 +4,8 @@ import sys
 import numpy as np
 
 from network import Network
-from input_fn import input_function
-from generate_tfrecord import cut_edge, prepare_validation, load_subject
+#from input_fn import input_function
+#from generate_tfrecord import cut_edge, prepare_validation, load_subject
 
 
 """This script trains or evaluates the model.
@@ -128,15 +128,17 @@ class Model(object):
 			print('Starting a training cycle.')
 
 			def input_fn_train():
-				return input_function(
+				# (conf.data_dir, 'train', conf.batch_size, 42, 10, conf.num_parallel_calls)
+				# (data_dir, mode, batch_size, buffer_size, num_epochs=1, num_parallel_calls=1):
+				return InputFnc.input_function(
 							data_dir=self.conf.data_dir,
 							mode='train',
-							patch_size=self.conf.patch_size,
+							# patch_size=self.conf.patch_size,
 							batch_size=self.conf.batch_size,
 							buffer_size=self.conf.num_training_subs,
-							valid_id=self.conf.validation_id,
-							pred_id=-1, # not used
-							overlap_step=-1, # not used
+							# valid_id=self.conf.validation_id,
+							# pred_id=-1, # not used
+							# overlap_step=-1, # not used
 							num_epochs=self.conf.epochs_per_eval,
 							num_parallel_calls=self.conf.num_parallel_calls)
 
@@ -149,12 +151,12 @@ class Model(object):
 					return input_function(
 								data_dir=self.conf.data_dir,
 								mode='valid',
-								patch_size=self.conf.patch_size,
+								# patch_size=self.conf.patch_size,
 								batch_size=self.conf.batch_size,
 								buffer_size=-1, # not used
-								valid_id=self.conf.validation_id,
-								pred_id=-1, # not used
-								overlap_step=self.conf.overlap_step,
+								# valid_id=self.conf.validation_id,
+								# pred_id=-1, # not used
+								# overlap_step=self.conf.overlap_step,
 								num_epochs=1,
 								num_parallel_calls=self.conf.num_parallel_calls)
 
