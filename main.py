@@ -1,8 +1,8 @@
 import argparse
 import os
 import tensorflow as tf
-from model import Model
-from configure import conf
+# from model import Model
+# from configure import conf
 
 
 """This script defines hyperparameters.
